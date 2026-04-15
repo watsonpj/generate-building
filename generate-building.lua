@@ -40,10 +40,13 @@ local ix
 local iy
 local iz
 
+local drawX
+local drawY
+
 for iy = 1, buildingHeight, 1 do
     for ix = 1, buildingWidth, 1 do
 
-    -- Create new layer and new cel
+    -- Wall
     local wallLayer = sprite:newLayer()
     wallLayer.name = "left walls level " .. iy .. ", section " .. ix
     local cel = sprite:newCel(wallLayer, 1)
@@ -51,16 +54,40 @@ for iy = 1, buildingHeight, 1 do
     -- Choose a wall variant
     local variantCurrentWall = math.random(1)
     local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
-
-    -- Add the wall
     local img = Image{ fromFile=pathCurrentWall }
+
+    drawX = 20 + ix * (sectionWidth)
+    drawY = canvasHeight/2 + (ix * (sectionWidth/2)) - (iy * sectionHeight)
 
     -- Place it into the cel at a given position
     cel.image = img
-    cel.position = Point(
-        20 + ix * (sectionWidth),
-        canvasHeight/2 + (ix * (sectionWidth/2)) - (iy * sectionHeight)
-    )
+    cel.position = Point( drawX, drawY )
+
+    -- Window
+    local windowLayer = sprite:newLayer()
+    windowLayer.name = "left windows level " .. iy .. ", section " .. ix
+
+    local cel = sprite:newCel(windowLayer, 1)
+    local variantCurrentWindow = math.random(1)
+    local pathCurrentWindow = pathWindows .. variantCurrentWindow .. ".png"
+    
+    local img = Image{ fromFile=pathCurrentWindow }
+
+    cel.image = img
+    cel.position = Point( drawX, drawY )
+
+    -- Trims
+    local trimVerticalLayer = sprite:newLayer()
+    trimVerticalLayer.name = "left trim vertical left level " .. iy .. ", section " .. ix
+
+    local cel = sprite:newCel(trimVerticalLayer, 1)
+    local variantCurrentVerticalTrim = math.random(1)
+    local pathCurrentVerticalTrim = pathVerticalTrims .. variantCurrentVerticalTrim .. ".png"
+    
+    local img = Image{ fromFile=pathCurrentVerticalTrim }
+
+    cel.image = img
+    cel.position = Point( drawX - (sectionWidth/2), drawY - 7)
 
     -- Recolour
 
@@ -85,13 +112,13 @@ for iy = 1, buildingHeight, 1 do
 
         -- Place it into the cel at a given position
         cel.image = img
+
+        drawX = 20 + (sectionWidth * buildingWidth) + iz * (sectionWidth)
+        drawY = canvasHeight/2 + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight)
         
         -- Flip the segment
         app.command.Flip{ target="mask", orientation="horizontal" }
-        cel.position = Point(
-            20 + (sectionWidth * buildingWidth) + iz * (sectionWidth),
-            canvasHeight/2 - (iz * (sectionWidth/2)) - ((iy - 1) * sectionHeight)
-        )
+        cel.position = Point( drawX, drawY )
 
         -- Recolour
 
