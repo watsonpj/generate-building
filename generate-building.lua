@@ -27,10 +27,55 @@ local pathRoofSidesLeft = pathDirectory .. "roof sides, left/"
 local pathRoofSidesRight = pathDirectory .. "roof sides, right/"
 local pathRooftops = pathDirectory .. "rooftops/"
 
-------------------------------------------------------------------------------------------------------------------------
--- Generate canvas
-sprite = Sprite(canvasWidth, canvasHeight)
-app.activeSprite = sprite
+local wallVariantCount = 7
+local windowVariantCount = 2
+local horizontalTrimVariantCount = 1
+local verticalTrimVariantCount = 2
+local cornerTrimVariantCount = 2
+local roofVariantCount = 1
+
+local color1A = Color{ r=255, g=255, b=255, a=255 }
+local color1B = Color{ r=203, g=219, b=252, a=255 }
+local color1C = Color{ r=155, g=173, b=183, a=255 }
+
+local color2A = Color{ r=255, g=255, b=255, a=255 }
+local color2B = Color{ r=255, g=255, b=255, a=255 }
+local color2C = Color{ r=255, g=255, b=255, a=255 }
+
+local colorReplace1BaseR = math.random(160, 240)
+local colorReplace1BaseG = math.random(160, 240)
+local colorReplace1BaseB = math.random(160, 240)
+local colorReplace1A = Color{ r=colorReplace1BaseR, g=colorReplace1BaseG, b=colorReplace1BaseB, a=255 }
+local colorReplace1B = Color{ r=colorReplace1BaseR * math.random(0.98, 1.00), g=colorReplace1BaseG * math.random(0.98, 1.00), b=colorReplace1BaseB * math.random(1.00, 1.02), a=255 }
+local colorReplace1C = Color{ r=colorReplace1BaseR * math.random(0.95, 1.00), g=colorReplace1BaseG * math.random(0.95, 1.00), b=colorReplace1BaseB * math.random(1.00, 1.05), a=255 }
+local colorReplace1D = Color{ r=colorReplace1BaseR * math.random(0.92, 1.00), g=colorReplace1BaseG * math.random(0.92, 1.00), b=colorReplace1BaseB * math.random(1.00, 1.08), a=255 }
+
+-- Functions
+function replaceColoursLeft()
+
+    app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1A, }
+    app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1B, }
+    app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1C, }
+    --[[
+    app.command.ReplaceColor { ui=false, from=color2A, to=colorReplace, }
+    app.command.ReplaceColor { ui=false, from=color2B, to=colorReplace, }
+    app.command.ReplaceColor { ui=false, from=color2C, to=colorReplace, }
+    ]]
+
+end
+
+function replaceColoursRight()
+
+    app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1B, }
+    app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1C, }
+    app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1D, }
+    --[[
+    app.command.ReplaceColor { ui=false, from=color2A, to=colorReplace, }
+    app.command.ReplaceColor { ui=false, from=color2B, to=colorReplace, }
+    app.command.ReplaceColor { ui=false, from=color2C, to=colorReplace, }
+    ]]
+
+end
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Establish building variables; how many sections wide, tall, etc
@@ -38,14 +83,25 @@ local buildingWidth = math.random(2, 4)
 local buildingHeight = math.random(1, 5)
 local buildingDepth = math.random(2, 4)
 
---buildingWidth = 3
---buildingHeight = 2
---buildingDepth = 3
+buildingWidth = 3
+buildingHeight = 2
+buildingDepth = 4
 
 local gableTable = {"left", "right"}
 
 local gableSide = gableTable[math.random(#gableTable)]
 gableSide = "left"
+
+-- Choose variants
+local variantCurrentWall = math.random(1, wallVariantCount)
+local variantCurrentWindow = math.random(1, windowVariantCount)
+local variantCurrentVerticalTrim = math.random(1, verticalTrimVariantCount)
+local variantCurrentCornerTrim = math.random(1, cornerTrimVariantCount)
+
+------------------------------------------------------------------------------------------------------------------------
+-- Generate canvas
+sprite = Sprite(canvasWidth, canvasHeight)
+app.activeSprite = sprite
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Nested loop to build sections for as many times as building is wide, and then for as many times as the building is high
@@ -72,8 +128,6 @@ for iy = 1, buildingHeight, 1 do
         wallLayer.name = "walls left level " .. iy .. ", section " .. ix
         local cel = sprite:newCel(wallLayer, 1)
 
-        -- Choose a wall variant
-        local variantCurrentWall = math.random(1)
         local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
         local img = Image{ fromFile=pathCurrentWall }
 
@@ -83,45 +137,48 @@ for iy = 1, buildingHeight, 1 do
         -- Place it into the cel at a given position
         cel.image = img
         cel.position = Point( drawX, drawY )
+        replaceColoursLeft()
 
         -- Window
         local windowLayer = sprite:newLayer()
         windowLayer.name = "windows left level " .. iy .. ", section " .. ix
 
         local cel = sprite:newCel(windowLayer, 1)
-        local variantCurrentWindow = math.random(1)
         local pathCurrentWindow = pathWindows .. variantCurrentWindow .. ".png"
         
         local img = Image{ fromFile=pathCurrentWindow }
 
         cel.image = img
         cel.position = Point( drawX, drawY )
+        replaceColoursLeft()
 
         -- Horizontal trim
         local trimHorizontalLayer = sprite:newLayer()
         trimHorizontalLayer.name = "horizontal trim left level " .. iy .. ", section " .. ix
 
         local cel = sprite:newCel(trimHorizontalLayer, 1)
-        local variantCurrentHorizontalTrim = math.random(1)
+        local variantCurrentHorizontalTrim = math.random(horizontalTrimVariantCount)
         local pathCurrentHorizontalTrim = pathHorizontalTrims .. variantCurrentHorizontalTrim .. ".png"
         
         local img = Image{ fromFile=pathCurrentHorizontalTrim }
 
         cel.image = img
         cel.position = Point( drawX, drawY + (sectionHeight / 2))
+        replaceColoursLeft()
 
         -- Vertical trim
         local trimVerticalLayer = sprite:newLayer()
         trimVerticalLayer.name = "vertical trim left level " .. iy .. ", section " .. ix
 
         local cel = sprite:newCel(trimVerticalLayer, 1)
-        local variantCurrentVerticalTrim = math.random(1)
+        --local variantCurrentVerticalTrim = math.random(1, verticalTrimVariantCount)
         local pathCurrentVerticalTrim = pathVerticalTrims .. variantCurrentVerticalTrim .. ".png"
         
         local img = Image{ fromFile=pathCurrentVerticalTrim }
 
         cel.image = img
         cel.position = Point( drawX - (sectionWidth/2), drawY - 7)
+        replaceColoursLeft()
 
         -- Corner trim
         if ix == buildingWidth then
@@ -130,13 +187,13 @@ for iy = 1, buildingHeight, 1 do
             trimCornerLayer.name = "corner trim level " .. iy
 
             local cel = sprite:newCel(trimCornerLayer, 1)
-            local variantCurrentCornerTrim = math.random(1)
             local pathCurrentCornerTrim = pathCornerTrims .. variantCurrentCornerTrim .. ".png"
             
             local img = Image{ fromFile=pathCurrentCornerTrim }
 
             cel.image = img
             cel.position = Point( drawX + (sectionWidth/2), drawY + 7)
+            replaceColoursLeft()
 
         end
 
@@ -149,7 +206,7 @@ for iy = 1, buildingHeight, 1 do
                 local cel = sprite:newCel(roofLayer, 1)
 
                 -- Choose a roof variant
-                local variantCurrentRoof = math.random(1)
+                local variantCurrentRoof = math.random(roofVariantCount)
                 local pathCurrentRoof = pathRooves .. variantCurrentRoof .. ".png"
                 local img = Image{ fromFile=pathCurrentRoof }
 
@@ -159,6 +216,7 @@ for iy = 1, buildingHeight, 1 do
                 -- Place it into the cel at a given position
                 cel.image = img
                 cel.position = Point( drawX, drawY )
+                replaceColoursLeft()
 
                 -- Roof sides
                 if ix == buildingWidth then
@@ -178,34 +236,41 @@ for iy = 1, buildingHeight, 1 do
                     -- Place it into the cel at a given position
                     cel.image = img
                     cel.position = Point( drawX, drawY )
+                    replaceColoursRight()
 
                 end
 
                 -- Rooftops
                 if buildingDepth > 2 then
 
-                    local roofTop = sprite:newLayer()
-                    roofTop.name = "roof top " .. ix
-                    local cel = sprite:newCel(roofTop, 1)
+                    -- Insert for loop up to building depth
+                    local roofTopN
 
-                    -- Choose a rooftop variant
-                    local variantCurrentRooftop = math.random(1)
-                    local pathCurrentRooftop = pathRooftops .. variantCurrentRooftop .. ".png"
-                    local img = Image{ fromFile=pathCurrentRooftop }
+                    for roofTopN = 1, buildingDepth - 2, 1 do
 
-                    drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + sectionWidth
-                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2)
+                        local roofTop = sprite:newLayer()
+                        roofTop.name = "roof top " .. ix
+                        local cel = sprite:newCel(roofTop, 1)
 
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
+                        -- Choose a rooftop variant
+                        local variantCurrentRooftop = math.random(1)
+                        local pathCurrentRooftop = pathRooftops .. variantCurrentRooftop .. ".png"
+                        local img = Image{ fromFile=pathCurrentRooftop }
+
+                        drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN)
+                        drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1))
+
+                        -- Place it into the cel at a given position
+                        cel.image = img
+                        cel.position = Point( drawX, drawY )
+                        replaceColoursLeft()
+
+                    end
                     
                 end
                 
             end
         end
-
-        -- Recolour
 
     end
 end
@@ -219,11 +284,8 @@ for iy = 1, buildingHeight, 1 do
         wallLayer.name = "walls right level " .. iy .. ", section " .. iz
         local cel = sprite:newCel(wallLayer, 1)
 
-        -- Choose a wall variant
-        local variantCurrentWall = math.random(1)
-        local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
-
         -- Add the wall
+        local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
         local img = Image{ fromFile=pathCurrentWall }
 
         -- Place it into the cel at a given position
@@ -235,6 +297,7 @@ for iy = 1, buildingHeight, 1 do
         -- Flip the segment
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX, drawY )
+        replaceColoursRight()
 
         -- Window
         local windowLayer = sprite:newLayer()
@@ -249,6 +312,7 @@ for iy = 1, buildingHeight, 1 do
         cel.image = img
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX, drawY )
+        replaceColoursRight()
 
         -- Horizontal trim
         local trimHorizontalLayer = sprite:newLayer()
@@ -263,13 +327,14 @@ for iy = 1, buildingHeight, 1 do
         cel.image = img
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX, drawY + (sectionHeight / 2))
+        replaceColoursRight()
 
         -- Vertical trim
         local trimVerticalLayer = sprite:newLayer()
         trimVerticalLayer.name = "vertical trim right level " .. iy .. ", section " .. iz
 
         local cel = sprite:newCel(trimVerticalLayer, 1)
-        local variantCurrentVerticalTrim = math.random(1)
+        --local variantCurrentVerticalTrim = math.random(1)
         local pathCurrentVerticalTrim = pathVerticalTrims .. variantCurrentVerticalTrim .. ".png"
         
         local img = Image{ fromFile=pathCurrentVerticalTrim }
@@ -277,6 +342,7 @@ for iy = 1, buildingHeight, 1 do
         cel.image = img
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX + (sectionWidth/2), drawY - 7)
+        replaceColoursRight()
 
         -- Gable check
         if iy == buildingHeight then
@@ -303,6 +369,7 @@ for iy = 1, buildingHeight, 1 do
                     -- Place it into the cel at a given position
                     cel.image = img
                     cel.position = Point( drawX, drawY )
+                    replaceColoursRight()
 
                 -- Else if we aren't the first section, add a flat gable end (current wall variant)
                 elseif iz > 1 then
@@ -322,13 +389,11 @@ for iy = 1, buildingHeight, 1 do
                     -- Flip the segment
                     app.command.Flip{ target="mask", orientation="horizontal" }
                     cel.position = Point( drawX, drawY )
+                    replaceColoursRight()
 
                 end
             end
         end
-
-
-        -- Recolour
 
     end
 end
@@ -336,3 +401,15 @@ end
 
 ------------------------------------------------------------------------------------------------------------------------
 app.refresh()
+
+-- Get formatted date and time
+local formattedDateAndTime = os.date("%d%m%y %H%M%S")
+
+-- Export as a gif
+--[[
+app.command.saveFileCopyAs {
+  ui=false,
+  filename="C:/Users/hidde/Pictures/aseprite/generate-building/" .. formattedDateAndTime .. ".png",
+  filenameFormat = "png"
+}
+]]
