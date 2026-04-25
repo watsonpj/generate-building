@@ -4,8 +4,8 @@
 local canvasWidth = 320
 local canvasHeight = 480
 
-local sectionWidth = 32
-local sectionHeight = 48
+local sectionWidth = 31
+local sectionHeight = 47
 
 local assetSpriteWidth = 80
 local assetSpriteHeight = 80
@@ -84,8 +84,8 @@ local buildingHeight = math.random(1, 5)
 local buildingDepth = math.random(2, 4)
 
 buildingWidth = 3
-buildingHeight = 2
-buildingDepth = 4
+buildingHeight = 3
+buildingDepth = 3
 
 local gableTable = {"left", "right"}
 
@@ -103,6 +103,19 @@ local variantCurrentCornerTrim = math.random(1, cornerTrimVariantCount)
 sprite = Sprite(canvasWidth, canvasHeight)
 app.activeSprite = sprite
 
+-- Create layer groups
+local trimCornerGroup = sprite:newGroup()
+trimCornerGroup.name = "corner trims"
+
+local roofGroup = sprite:newGroup()
+roofGroup.name = "rooves"
+
+local trimVerticalGroup = sprite:newGroup()
+trimVerticalGroup.name = "vertical trims"
+
+local trimHorizontalGroup = sprite:newGroup()
+trimHorizontalGroup.name = "horizontal trims"
+
 ------------------------------------------------------------------------------------------------------------------------
 -- Nested loop to build sections for as many times as building is wide, and then for as many times as the building is high
 local ix
@@ -114,8 +127,7 @@ local buildingPixelWidth = (buildingWidth + buildingDepth) * sectionWidth
 local buildingPixelHeight = (buildingHeight * sectionHeight) + (buildingWidth * sectionWidth) + sectionHeight * 3
 
 local drawStartX = ((canvasWidth - buildingPixelWidth) / 2) - (sectionWidth / 2)
---local drawStartY = (canvasHeight - buildingPixelHeight) / 2
-local drawStartY = buildingPixelHeight
+local drawStartY = canvasHeight - ((canvasHeight - buildingPixelHeight) / 2) - sectionHeight - (buildingWidth * sectionWidth) + sectionHeight
 
 local drawX
 local drawY
@@ -155,6 +167,7 @@ for iy = 1, buildingHeight, 1 do
         -- Horizontal trim
         local trimHorizontalLayer = sprite:newLayer()
         trimHorizontalLayer.name = "horizontal trim left level " .. iy .. ", section " .. ix
+        trimHorizontalLayer.parent = trimHorizontalGroup
 
         local cel = sprite:newCel(trimHorizontalLayer, 1)
         local variantCurrentHorizontalTrim = math.random(horizontalTrimVariantCount)
@@ -169,6 +182,7 @@ for iy = 1, buildingHeight, 1 do
         -- Vertical trim
         local trimVerticalLayer = sprite:newLayer()
         trimVerticalLayer.name = "vertical trim left level " .. iy .. ", section " .. ix
+        trimVerticalLayer.parent = trimVerticalGroup
 
         local cel = sprite:newCel(trimVerticalLayer, 1)
         --local variantCurrentVerticalTrim = math.random(1, verticalTrimVariantCount)
@@ -182,9 +196,10 @@ for iy = 1, buildingHeight, 1 do
 
         -- Corner trim
         if ix == buildingWidth then
-            
+
             local trimCornerLayer = sprite:newLayer()
             trimCornerLayer.name = "corner trim level " .. iy
+            trimCornerLayer.parent = trimCornerGroup
 
             local cel = sprite:newCel(trimCornerLayer, 1)
             local pathCurrentCornerTrim = pathCornerTrims .. variantCurrentCornerTrim .. ".png"
@@ -192,7 +207,7 @@ for iy = 1, buildingHeight, 1 do
             local img = Image{ fromFile=pathCurrentCornerTrim }
 
             cel.image = img
-            cel.position = Point( drawX + (sectionWidth/2), drawY + 7)
+            cel.position = Point( drawX + (sectionWidth/2), drawY + 9)
             replaceColoursLeft()
 
         end
@@ -203,6 +218,8 @@ for iy = 1, buildingHeight, 1 do
 
                 local roofLayer = sprite:newLayer()
                 roofLayer.name = "roof left " .. ix
+                roofLayer.parent = roofGroup
+
                 local cel = sprite:newCel(roofLayer, 1)
 
                 -- Choose a roof variant
@@ -223,6 +240,8 @@ for iy = 1, buildingHeight, 1 do
                 
                     local roofSideLeft = sprite:newLayer()
                     roofSideLeft.name = "roof side left"
+                    roofSideLeft.parent = roofGroup
+
                     local cel = sprite:newCel(roofSideLeft, 1)
 
                     -- Choose a roof side variant
@@ -250,6 +269,8 @@ for iy = 1, buildingHeight, 1 do
 
                         local roofTop = sprite:newLayer()
                         roofTop.name = "roof top " .. ix
+                        roofTop.parent = roofGroup
+
                         local cel = sprite:newCel(roofTop, 1)
 
                         -- Choose a rooftop variant
@@ -317,6 +338,7 @@ for iy = 1, buildingHeight, 1 do
         -- Horizontal trim
         local trimHorizontalLayer = sprite:newLayer()
         trimHorizontalLayer.name = "horizontal trim right level " .. iy .. ", section " .. iz
+        trimHorizontalLayer.parent = trimHorizontalGroup
 
         local cel = sprite:newCel(trimHorizontalLayer, 1)
         local variantCurrentHorizontalTrim = math.random(1)
@@ -332,6 +354,7 @@ for iy = 1, buildingHeight, 1 do
         -- Vertical trim
         local trimVerticalLayer = sprite:newLayer()
         trimVerticalLayer.name = "vertical trim right level " .. iy .. ", section " .. iz
+        trimVerticalLayer.parent = trimVerticalGroup
 
         local cel = sprite:newCel(trimVerticalLayer, 1)
         --local variantCurrentVerticalTrim = math.random(1)
@@ -356,6 +379,8 @@ for iy = 1, buildingHeight, 1 do
 
                     local roofSideRight = sprite:newLayer()
                     roofSideRight.name = "roof side right"
+                    roofSideRight.parent = roofGroup
+
                     local cel = sprite:newCel(roofSideRight, 1)
 
                     -- Choose a roof side variant
@@ -376,6 +401,8 @@ for iy = 1, buildingHeight, 1 do
 
                     local gableEnd = sprite:newLayer()
                     gableEnd.name = "gable end"
+                    gableEnd.parent = roofGroup
+
                     local cel = sprite:newCel(gableEnd, 1)
 
                     local img = Image{ fromFile=pathCurrentWall }
@@ -398,6 +425,13 @@ for iy = 1, buildingHeight, 1 do
     end
 end
 
+------------------------------------------------------------------------------------------------------------------------
+-- Reorder layers
+local numberOfLayers = #(sprite.layers)
+trimHorizontalGroup.stackIndex = numberOfLayers
+trimVerticalGroup.stackIndex = numberOfLayers
+trimCornerGroup.stackIndex = numberOfLayers
+roofGroup.stackIndex = numberOfLayers
 
 ------------------------------------------------------------------------------------------------------------------------
 app.refresh()
@@ -406,10 +440,8 @@ app.refresh()
 local formattedDateAndTime = os.date("%d%m%y %H%M%S")
 
 -- Export as a gif
---[[
 app.command.saveFileCopyAs {
-  ui=false,
-  filename="C:/Users/hidde/Pictures/aseprite/generate-building/" .. formattedDateAndTime .. ".png",
-  filenameFormat = "png"
+    ui=false,
+    filename="C:\\Users\\hidde\\Pictures\\aseprite\\generate-building\\" .. formattedDateAndTime .. ".png",
+    --filenameFormat = "png"
 }
-]]
