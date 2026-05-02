@@ -4,8 +4,8 @@
 local canvasWidth = 320
 local canvasHeight = 480
 
-local sectionWidth = 31
-local sectionHeight = 47
+local sectionWidth = 32
+local sectionHeight = 48
 
 local assetSpriteWidth = 80
 local assetSpriteHeight = 80
@@ -34,6 +34,7 @@ local verticalTrimVariantCount = 2
 local cornerTrimVariantCount = 2
 local roofVariantCount = 1
 
+-- Defining the colours we replace in the original sprites
 local color1A = Color{ r=255, g=255, b=255, a=255 }
 local color1B = Color{ r=203, g=219, b=252, a=255 }
 local color1C = Color{ r=155, g=173, b=183, a=255 }
@@ -42,38 +43,103 @@ local color2A = Color{ r=255, g=255, b=255, a=255 }
 local color2B = Color{ r=255, g=255, b=255, a=255 }
 local color2C = Color{ r=255, g=255, b=255, a=255 }
 
-local colorReplace1BaseR = math.random(160, 240)
-local colorReplace1BaseG = math.random(160, 240)
-local colorReplace1BaseB = math.random(160, 240)
-local colorReplace1A = Color{ r=colorReplace1BaseR, g=colorReplace1BaseG, b=colorReplace1BaseB, a=255 }
-local colorReplace1B = Color{ r=colorReplace1BaseR * math.random(0.98, 1.00), g=colorReplace1BaseG * math.random(0.98, 1.00), b=colorReplace1BaseB * math.random(1.00, 1.02), a=255 }
-local colorReplace1C = Color{ r=colorReplace1BaseR * math.random(0.95, 1.00), g=colorReplace1BaseG * math.random(0.95, 1.00), b=colorReplace1BaseB * math.random(1.00, 1.05), a=255 }
-local colorReplace1D = Color{ r=colorReplace1BaseR * math.random(0.92, 1.00), g=colorReplace1BaseG * math.random(0.92, 1.00), b=colorReplace1BaseB * math.random(1.00, 1.08), a=255 }
+-- Define a series of wall, roof, and trim colours to choose from
+-- Red
+local colorReplaceRedBaseR = math.random(200, 220)
+local colorReplaceRedBaseG = math.random(60, 80)
+local colorReplaceRedBaseB = math.random(10, 30)
+local colorReplaceRed = Color{ r=colorReplaceRedBaseR, g=colorReplaceRedBaseG, b=colorReplaceRedBaseB, a=255 }
 
+-- Orange
+local colorReplaceOrangeBaseR = math.random(200, 220)
+local colorReplaceOrangeBaseG = math.random(160, 180)
+local colorReplaceOrangeBaseB = math.random(10, 30)
+local colorReplaceOrange = Color{ r=colorReplaceOrangeBaseR, g=colorReplaceOrangeBaseG, b=colorReplaceOrangeBaseB, a=255 }
+
+-- Yellow
+local colorReplaceYellowBaseR = math.random(200, 220)
+local colorReplaceYellowBaseG = math.random(200, 220)
+local colorReplaceYellowBaseB = math.random(10, 30)
+local colorReplaceYellow = Color{ r=colorReplaceYellowBaseR, g=colorReplaceYellowBaseG, b=colorReplaceYellowBaseB, a=255 }
+
+-- Green
+local colorReplaceGreenBaseR = math.random(60, 80)
+local colorReplaceGreenBaseG = math.random(180, 200)
+local colorReplaceGreenBaseB = math.random(60, 80)
+local colorReplaceGreen = Color{ r=colorReplaceGreenBaseR, g=colorReplaceGreenBaseG, b=colorReplaceGreenBaseB, a=255 }
+
+-- Grey
+local colorReplaceGreyBaseR = math.random(100, 120)
+local colorReplaceGreyBaseG = math.random(100, 120)
+local colorReplaceGreyBaseB = math.random(100, 120)
+local colorReplaceGrey = Color{ r=colorReplaceGreyBaseR, g=colorReplaceGreyBaseG, b=colorReplaceGreyBaseB, a=255 }
+
+-- Black
+local colorReplaceBlackBaseR = math.random(60, 80)
+local colorReplaceBlackBaseG = math.random(60, 80)
+local colorReplaceBlackBaseB = math.random(60, 80)
+local colorReplaceBlack = Color{ r=colorReplaceBlackBaseR, g=colorReplaceBlackBaseG, b=colorReplaceBlackBaseB, a=255 }
+
+-- White
+local colorReplaceWhiteBaseR = math.random(230, 250)
+local colorReplaceWhiteBaseG = math.random(230, 250)
+local colorReplaceWhiteBaseB = math.random(230, 250)
+local colorReplaceWhite = Color{ r=colorReplaceWhiteBaseR, g=colorReplaceWhiteBaseG, b=colorReplaceWhiteBaseB, a=255 }
+
+local tableColorPresets = {
+    colorReplaceRed,
+    colorReplaceOrange,
+    colorReplaceYellow,
+    colorReplaceGreen,
+    colorReplaceGrey,
+    colorReplaceBlack,
+    colorReplaceWhite,
+}
+
+local colorRooves = tableColorPresets[math.random(#tableColorPresets)]
+local colorWalls = tableColorPresets[math.random(#tableColorPresets)]
+local colorTrims = tableColorPresets[math.random(#tableColorPresets)]
+
+------------------------------------------------------------------------------------------------------------------------
 -- Functions
-function replaceColoursLeft()
+function replaceColours(component, direction)
 
-    app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1A, }
-    app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1B, }
-    app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1C, }
-    --[[
-    app.command.ReplaceColor { ui=false, from=color2A, to=colorReplace, }
-    app.command.ReplaceColor { ui=false, from=color2B, to=colorReplace, }
-    app.command.ReplaceColor { ui=false, from=color2C, to=colorReplace, }
-    ]]
+    local recolorColor
 
-end
+    if component == "roof" then
+        recolorColor = colorRooves
+    elseif component == "wall" then
+        recolorColor = colorWalls
+    elseif component == "trim" then
+        recolorColor = colorTrims
+    end
 
-function replaceColoursRight()
+    -- Generate all colour variants 
+    local colorReplace1A = recolorColor
+    local colorReplace1B = Color{ r=recolorColor.red * 0.90, g=recolorColor.green * 0.90, b=recolorColor.blue * 1.05, a=255 }
+    local colorReplace1C = Color{ r=recolorColor.red * 0.80, g=recolorColor.green * 0.80, b=recolorColor.blue * 1.10, a=255 }
+    local colorReplace1D = Color{ r=recolorColor.red * 0.70, g=recolorColor.green * 0.70, b=recolorColor.blue * 1.15, a=255 }
+    local colorReplace1E = Color{ r=recolorColor.red * 0.60, g=recolorColor.green * 0.60, b=recolorColor.blue * 1.20, a=255 }
 
-    app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1B, }
-    app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1C, }
-    app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1D, }
-    --[[
-    app.command.ReplaceColor { ui=false, from=color2A, to=colorReplace, }
-    app.command.ReplaceColor { ui=false, from=color2B, to=colorReplace, }
-    app.command.ReplaceColor { ui=false, from=color2C, to=colorReplace, }
-    ]]
+    -- Top
+    if direction == "top" then
+        app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1A, }
+        app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1B, }
+        app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1C, }
+
+    -- Left
+    elseif direction == "left" then
+        app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1B, }
+        app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1C, }
+        app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1D, }
+
+    -- Right
+    elseif direction == "right" then
+        app.command.ReplaceColor { ui=false, from=color1A, to=colorReplace1C, }
+        app.command.ReplaceColor { ui=false, from=color1B, to=colorReplace1D, }
+        app.command.ReplaceColor { ui=false, from=color1C, to=colorReplace1E, }
+
+    end
 
 end
 
@@ -83,8 +149,8 @@ local buildingWidth = math.random(2, 4)
 local buildingHeight = math.random(1, 5)
 local buildingDepth = math.random(2, 4)
 
-buildingWidth = 3
-buildingHeight = 3
+buildingWidth = 4
+buildingHeight = 2
 buildingDepth = 3
 
 local gableTable = {"left", "right"}
@@ -143,13 +209,13 @@ for iy = 1, buildingHeight, 1 do
         local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
         local img = Image{ fromFile=pathCurrentWall }
 
-        drawX = drawStartX + ((ix - 1) * sectionWidth)
+        drawX = drawStartX + ((ix - 1) * sectionWidth) + 1
         drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight)
 
         -- Place it into the cel at a given position
         cel.image = img
         cel.position = Point( drawX, drawY )
-        replaceColoursLeft()
+        replaceColours("wall", "left")
 
         -- Window
         local windowLayer = sprite:newLayer()
@@ -162,7 +228,7 @@ for iy = 1, buildingHeight, 1 do
 
         cel.image = img
         cel.position = Point( drawX, drawY )
-        replaceColoursLeft()
+        replaceColours("wall", "left")
 
         -- Horizontal trim
         local trimHorizontalLayer = sprite:newLayer()
@@ -177,7 +243,7 @@ for iy = 1, buildingHeight, 1 do
 
         cel.image = img
         cel.position = Point( drawX, drawY + (sectionHeight / 2))
-        replaceColoursLeft()
+        replaceColours("trim", "left")
 
         -- Vertical trim
         local trimVerticalLayer = sprite:newLayer()
@@ -192,7 +258,7 @@ for iy = 1, buildingHeight, 1 do
 
         cel.image = img
         cel.position = Point( drawX - (sectionWidth/2), drawY - 7)
-        replaceColoursLeft()
+        replaceColours("trim", "left")
 
         -- Corner trim
         if ix == buildingWidth then
@@ -208,7 +274,7 @@ for iy = 1, buildingHeight, 1 do
 
             cel.image = img
             cel.position = Point( drawX + (sectionWidth/2), drawY + 9)
-            replaceColoursLeft()
+            replaceColours("trim", "left")
 
         end
 
@@ -227,13 +293,18 @@ for iy = 1, buildingHeight, 1 do
                 local pathCurrentRoof = pathRooves .. variantCurrentRoof .. ".png"
                 local img = Image{ fromFile=pathCurrentRoof }
 
-                drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2)
-                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight - 7
+                --drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2)
+                --drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (1 * ix)
+                --drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight - 8
+
+                -- Replicated straight from walls to test
+                drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + 1
+                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - 55
 
                 -- Place it into the cel at a given position
                 cel.image = img
                 cel.position = Point( drawX, drawY )
-                replaceColoursLeft()
+                replaceColours("roof", "left")
 
                 -- Roof sides
                 if ix == buildingWidth then
@@ -249,13 +320,13 @@ for iy = 1, buildingHeight, 1 do
                     local pathCurrentRoofSide = pathRoofSidesLeft .. variantCurrentRoofSide .. ".png"
                     local img = Image{ fromFile=pathCurrentRoofSide }
 
-                    drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth
-                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight
+                    drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
+                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
 
                     -- Place it into the cel at a given position
                     cel.image = img
                     cel.position = Point( drawX, drawY )
-                    replaceColoursRight()
+                    replaceColours("wall", "right")
 
                 end
 
@@ -278,13 +349,13 @@ for iy = 1, buildingHeight, 1 do
                         local pathCurrentRooftop = pathRooftops .. variantCurrentRooftop .. ".png"
                         local img = Image{ fromFile=pathCurrentRooftop }
 
-                        drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN)
-                        drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1))
+                        drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN) + 1
+                        drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1)) + 2
 
                         -- Place it into the cel at a given position
                         cel.image = img
                         cel.position = Point( drawX, drawY )
-                        replaceColoursLeft()
+                        replaceColours("roof", "top")
 
                     end
                     
@@ -312,13 +383,13 @@ for iy = 1, buildingHeight, 1 do
         -- Place it into the cel at a given position
         cel.image = img
 
-        drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth)
-        drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2)
+        drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 1
+        drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) + 1
         
         -- Flip the segment
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX, drawY )
-        replaceColoursRight()
+        replaceColours("wall", "right")
 
         -- Window
         local windowLayer = sprite:newLayer()
@@ -333,7 +404,7 @@ for iy = 1, buildingHeight, 1 do
         cel.image = img
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX, drawY )
-        replaceColoursRight()
+        replaceColours("wall", "right")
 
         -- Horizontal trim
         local trimHorizontalLayer = sprite:newLayer()
@@ -349,7 +420,7 @@ for iy = 1, buildingHeight, 1 do
         cel.image = img
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX, drawY + (sectionHeight / 2))
-        replaceColoursRight()
+        replaceColours("trim", "right")
 
         -- Vertical trim
         local trimVerticalLayer = sprite:newLayer()
@@ -365,7 +436,7 @@ for iy = 1, buildingHeight, 1 do
         cel.image = img
         app.command.Flip{ target="mask", orientation="horizontal" }
         cel.position = Point( drawX + (sectionWidth/2), drawY - 7)
-        replaceColoursRight()
+        replaceColours("trim", "right")
 
         -- Gable check
         if iy == buildingHeight then
@@ -388,13 +459,13 @@ for iy = 1, buildingHeight, 1 do
                     local pathCurrentRoofSide = pathRoofSidesRight .. variantCurrentRoofSide .. ".png"
                     local img = Image{ fromFile=pathCurrentRoofSide }
 
-                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth)
-                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 8
+                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) - 1
+                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 9
 
                     -- Place it into the cel at a given position
                     cel.image = img
                     cel.position = Point( drawX, drawY )
-                    replaceColoursRight()
+                    replaceColours("roof", "right")
 
                 -- Else if we aren't the first section, add a flat gable end (current wall variant)
                 elseif iz > 1 then
@@ -410,13 +481,13 @@ for iy = 1, buildingHeight, 1 do
                     -- Place it into the cel at a given position
                     cel.image = img
 
-                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth)
-                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight
+                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 1
+                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 1
                     
                     -- Flip the segment
                     app.command.Flip{ target="mask", orientation="horizontal" }
                     cel.position = Point( drawX, drawY )
-                    replaceColoursRight()
+                    replaceColours("wall", "right")
 
                 end
             end
@@ -439,9 +510,8 @@ app.refresh()
 -- Get formatted date and time
 local formattedDateAndTime = os.date("%d%m%y %H%M%S")
 
--- Export as a gif
+-- Export as a PNG
 app.command.saveFileCopyAs {
     ui=false,
     filename="C:\\Users\\hidde\\Pictures\\aseprite\\generate-building\\" .. formattedDateAndTime .. ".png",
-    --filenameFormat = "png"
 }
