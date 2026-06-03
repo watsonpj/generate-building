@@ -7,11 +7,6 @@ local canvasHeight = 480
 local sectionWidth = 32
 local sectionHeight = 48
 
-local brush = Brush {
-    type = BrushType.CIRCLE,
-    size = 1
-}
-
 -- Filepaths for assets
 local pathDirectory = "C:/Users/hidde/Pictures/aseprite/asset pipeline buildings/"
 local pathWalls = pathDirectory .. "walls/"
@@ -44,10 +39,6 @@ local roofTrimVariantCount = 1
 local color1A = Color{ r=255, g=255, b=255, a=255 }
 local color1B = Color{ r=203, g=219, b=252, a=255 }
 local color1C = Color{ r=155, g=173, b=183, a=255 }
-
-local color2A = Color{ r=255, g=255, b=255, a=255 }
-local color2B = Color{ r=255, g=255, b=255, a=255 }
-local color2C = Color{ r=255, g=255, b=255, a=255 }
 
 -- Define a series of wall, roof, and trim colours to choose from
 -- Red
@@ -169,11 +160,35 @@ function replaceColours(component, direction)
 
 end
 
+function placeComponent(componentName, componentGroup, componentTypePath, componentVariant, componentX, componentY, componentType, componentDirection, booleanFlipped)
+
+        local componentLayer = sprite:newLayer()
+        componentLayer.name = componentName
+        componentLayer.parent = componentGroup
+
+        local cel = sprite:newCel(componentLayer, 1)
+
+        local pathComponent = componentTypePath .. componentVariant .. ".png"
+        local img = Image{ fromFile=pathComponent }
+
+        -- Place it into the cel at a given position
+        cel.image = img
+        if booleanFlipped == true then
+            app.command.Flip{ target="mask", orientation="horizontal" }
+        end
+        cel.position = Point( componentX, componentY )
+        replaceColours(componentType, componentDirection)
+end
+
 ------------------------------------------------------------------------------------------------------------------------
 -- Establish building variables; how many sections wide, tall, etc
 local buildingWidth = math.random(2, 4)
 local buildingHeight = math.random(1, 5)
 local buildingDepth = math.random(2, 4)
+
+buildingWidth = 2
+buildingHeight = 1
+buildingDepth = 4
 
 local gableTable = {"left", "right"}
 
@@ -250,9 +265,17 @@ local doorGroup = sprite:newGroup()
 doorGroup.name = "door"
 doorGroup.isCollapsed = true
 
-local trimRoofGroupRear = sprite:newGroup()
-trimRoofGroupRear.name = "roof trims rear"
-trimRoofGroupRear.isCollapsed = true
+local trimRoofGroupRearRight = sprite:newGroup()
+trimRoofGroupRearRight.name = "roof trims rear right"
+trimRoofGroupRearRight.isCollapsed = true
+
+local trimRoofGroupRearCentre = sprite:newGroup()
+trimRoofGroupRearCentre.name = "roof trims rear centre"
+trimRoofGroupRearCentre.isCollapsed = true
+
+local trimRoofGroupRearLeft = sprite:newGroup()
+trimRoofGroupRearLeft.name = "roof trims rear left"
+trimRoofGroupRearLeft.isCollapsed = true
 
 local trimCornerGroup = sprite:newGroup()
 trimCornerGroup.name = "corner trims"
@@ -270,9 +293,17 @@ local gableTrimVerticalGroup = sprite:newGroup()
 gableTrimVerticalGroup.name = "vertical gable trims"
 gableTrimVerticalGroup.isCollapsed = true
 
-local trimRoofGroupFore = sprite:newGroup()
-trimRoofGroupFore.name = "roof trims fore"
-trimRoofGroupFore.isCollapsed = true
+local trimRoofGroupForeRight = sprite:newGroup()
+trimRoofGroupForeRight.name = "roof trims fore right"
+trimRoofGroupForeRight.isCollapsed = true
+
+local trimRoofGroupForeCentre = sprite:newGroup()
+trimRoofGroupForeCentre.name = "roof trims fore centre"
+trimRoofGroupForeCentre.isCollapsed = true
+
+local trimRoofGroupForeLeft = sprite:newGroup()
+trimRoofGroupForeLeft.name = "roof trims fore left"
+trimRoofGroupForeLeft.isCollapsed = true
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Nested loop to build sections for as many times as building is wide, and then for as many times as the building is high
@@ -293,210 +324,62 @@ local drawY
 for iy = 1, buildingHeight, 1 do
     for ix = 1, buildingWidth, 1 do
 
-        -- Wall
-        local wallLayer = sprite:newLayer()
-        wallLayer.name = "walls left level " .. iy .. ", section " .. ix
-        wallLayer.parent = wallsGroup
-
-        local cel = sprite:newCel(wallLayer, 1)
-
-        local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
-        local img = Image{ fromFile=pathCurrentWall }
-
+        -- Walls
         drawX = drawStartX + ((ix - 1) * sectionWidth) + 1
         drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight)
-
-        -- Place it into the cel at a given position
-        cel.image = img
-        cel.position = Point( drawX, drawY )
-        replaceColours("wall", "left")
+        placeComponent("walls left", wallsGroup, pathWalls, variantCurrentWall, drawX, drawY, "wall", "left", false)
 
         -- Door or window
         if iy == 1 then
-
-            -- Door
             if ix == doorLocation then
-
-                local doorLayer = sprite:newLayer()
-                doorLayer.name = "door"
-                doorLayer.parent = windowsLeftGroup
-
-                local cel = sprite:newCel(doorLayer, 1)
-                local pathCurrentDoor = pathDoors .. variantCurrentDoor .. ".png"
-                
-                local img = Image{ fromFile=pathCurrentDoor }
-
-                cel.image = img
-                cel.position = Point( drawX, drawY )
-                replaceColours("trim", "left")
+                placeComponent("door", windowsLeftGroup, pathDoors, variantCurrentDoor, drawX, drawY, "trim", "left", false)
             end
-
         else
-            -- Window
-            local windowLayer = sprite:newLayer()
-            windowLayer.name = "windows left level " .. iy .. ", section " .. ix
-            windowLayer.parent = windowsLeftGroup
-
-            local cel = sprite:newCel(windowLayer, 1)
-            local pathCurrentWindow = pathWindows .. variantCurrentWindow .. ".png"
-            
-            local img = Image{ fromFile=pathCurrentWindow }
-
-            cel.image = img
-            cel.position = Point( drawX, drawY )
-            replaceColours("trim", "left")
+            placeComponent("windows left", windowsLeftGroup, pathWindows, variantCurrentWindow, drawX, drawY, "trim", "left", false)
         end
 
         -- Horizontal trim
-        local trimHorizontalLayer = sprite:newLayer()
-        trimHorizontalLayer.name = "horizontal trim left level " .. iy .. ", section " .. ix
-        trimHorizontalLayer.parent = trimHorizontalLeftGroup
-
-        local cel = sprite:newCel(trimHorizontalLayer, 1)
-        local variantCurrentHorizontalTrim = tableRowTrimsLeft[iy]
-        local pathCurrentHorizontalTrim = pathHorizontalTrims .. variantCurrentHorizontalTrim .. ".png"
-        
-        local img = Image{ fromFile=pathCurrentHorizontalTrim }
-
-        cel.image = img
-        cel.position = Point( drawX, drawY )
-        replaceColours("trim", "left")
+        placeComponent("horizontal trim left", trimHorizontalLeftGroup, pathHorizontalTrims, tableRowTrimsLeft[iy], drawX, drawY, "trim", "left", false)
 
         -- Corner trim, side
         if ix == 1 then
-
-            local trimCornerLayer = sprite:newLayer()
-            trimCornerLayer.name = "corner trim level " .. iy
-            trimCornerLayer.parent = trimCornerGroup
-
-            local cel = sprite:newCel(trimCornerLayer, 1)
-            local pathCurrentCornerTrimSide = pathCornerTrimsSide .. variantCurrentCornerTrim .. ".png"
-            
-            local img = Image{ fromFile=pathCurrentCornerTrimSide }
-
-            cel.image = img
-            cel.position = Point( drawX - (sectionWidth/2), drawY - 7 )
-            replaceColours("trim", "top")
+            placeComponent("corner trim", trimCornerGroup, pathCornerTrimsSide, variantCurrentCornerTrim, drawX - (sectionWidth/2), drawY - 7, "trim", "top", false)
 
         -- Corner trim, centre
         elseif ix == buildingWidth then
-
-            local trimCornerLayer = sprite:newLayer()
-            trimCornerLayer.name = "corner trim level " .. iy
-            trimCornerLayer.parent = trimCornerGroup
-
-            local cel = sprite:newCel(trimCornerLayer, 1)
-            local pathCurrentCornerTrimCentre = pathCornerTrimsCentre .. variantCurrentCornerTrim .. ".png"
-            
-            local img = Image{ fromFile=pathCurrentCornerTrimCentre }
-
-            cel.image = img
-            cel.position = Point( drawX + (sectionWidth/2), drawY + 7)
-            replaceColours("trim", "top")
-
+            placeComponent("corner trim", trimCornerGroup, pathCornerTrimsCentre, variantCurrentCornerTrim, drawX + (sectionWidth/2), drawY + 7, "trim", "top", false)
         end
     
+        -- Vertical trim
         if ix > 1 then
-
-            -- Vertical trim
-            local trimVerticalLayer = sprite:newLayer()
-            trimVerticalLayer.name = "vertical trim left level " .. iy .. ", section " .. ix
-            trimVerticalLayer.parent = trimVerticalGroup
-
-            local cel = sprite:newCel(trimVerticalLayer, 1)
-            local variantCurrentVerticalTrim = tableColTrimsLeft[ix]
-            local pathCurrentVerticalTrim = pathVerticalTrims .. variantCurrentVerticalTrim .. ".png"
-            
-            local img = Image{ fromFile=pathCurrentVerticalTrim }
-
-            cel.image = img
-            cel.position = Point( drawX - (sectionWidth/2), drawY - 7)
-            replaceColours("trim", "top") -- Because the vertical trims contain a top section, so this fixes recolouring
-
+            placeComponent("vertical trim left", trimVerticalGroup, pathVerticalTrims, tableColTrimsLeft[ix], drawX - (sectionWidth/2), drawY - 7, "trim", "top", false)
         end
 
         -- Gable
         if iy == buildingHeight then
             if gableSide == "left" then
 
-                local roofLayer = sprite:newLayer()
-                roofLayer.name = "roof left " .. ix
-                roofLayer.parent = roofGroup
-
-                local cel = sprite:newCel(roofLayer, 1)
-
-                -- Choose a roof variant
-                local variantCurrentRoof = math.random(roofVariantCount)
-                local pathCurrentRoof = pathRooves .. variantCurrentRoof .. ".png"
-                local img = Image{ fromFile=pathCurrentRoof }
-
                 -- Replicated straight from walls to test
                 drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + 2
                 drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - 56
-
-                -- Place it into the cel at a given position
-                cel.image = img
-                cel.position = Point( drawX, drawY )
-                replaceColours("roof", "left")
+                placeComponent("roof left", roofGroup, pathRooves, math.random(roofVariantCount), drawX, drawY, "roof", "left", false)
 
                 -- Roof sides and trims
                 if ix == buildingWidth then
-                
-                    -- Roof side
-                    local roofSideLeft = sprite:newLayer()
-                    roofSideLeft.name = "roof side left"
-                    roofSideLeft.parent = roofGroup
-
-                    local cel = sprite:newCel(roofSideLeft, 1)
-
-                    -- Roof side variant is wall variant
-                    local variantCurrentRoofSide = variantCurrentWall
-                    local pathCurrentRoofSide = pathRoofSidesLeft .. variantCurrentRoofSide .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofSide }
-
+                    
                     drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
                     drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
-
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("wall", "right")
+                    placeComponent("roof side left", roofGroup, pathRoofSidesLeft, variantCurrentWall, drawX, drawY, "wall", "right", false)
                 
                     -- Roof trim fore
-                    roofTrimLeft = sprite:newLayer()
-                    roofTrimLeft.name = "roof trim left"
-                    roofTrimLeft.parent = trimRoofGroupFore
-
-                    local cel = sprite:newCel(roofTrimLeft, 1)
-
-                    local pathCurrentRoofTrimLeft = pathRoofTrimsLeft .. variantCurrentRoofTrim .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofTrimLeft }
-
                     drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
                     drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
+                    placeComponent("roof trim left fore", trimRoofGroupForeLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("trim", "top")
-                
                     -- Roof trim rear
-                    roofTrimLeftRear = sprite:newLayer()
-                    roofTrimLeftRear.name = "roof trim left rear"
-                    roofTrimLeftRear.parent = trimRoofGroupRear
-
-                    local cel = sprite:newCel(roofTrimLeftRear, 1)
-
-                    local pathCurrentRoofTrimLeft = pathRoofTrimsLeft .. variantCurrentRoofTrim .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofTrimLeft }
-
                     drawX = drawX - (sectionWidth * buildingWidth) - 5
                     drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
-
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("trim", "top")
+                    placeComponent("roof trim left rear", trimRoofGroupRearLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
                 end
 
@@ -505,35 +388,16 @@ for iy = 1, buildingHeight, 1 do
 
                     -- Insert for loop up to building depth
                     local roofTopN
-
                     for roofTopN = 1, buildingDepth - 2, 1 do
-
-                        local roofTop = sprite:newLayer()
-                        roofTop.name = "roof top " .. ix
-                        roofTop.parent = roofGroup
-
-                        local cel = sprite:newCel(roofTop, 1)
-
-                        -- Choose a rooftop variant
-                        local variantCurrentRooftop = math.random(1)
-                        local pathCurrentRooftop = pathRooftops .. variantCurrentRooftop .. ".png"
-                        local img = Image{ fromFile=pathCurrentRooftop }
 
                         drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN) + 1
                         drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1)) + 2
-
-                        -- Place it into the cel at a given position
-                        cel.image = img
-                        cel.position = Point( drawX, drawY )
-                        replaceColours("roof", "top")
+                        placeComponent("roof top", roofGroup, pathRooftops, 1, drawX, drawY, "roof", "top", false)
 
                     end
-                    
                 end
-                
             end
         end
-
     end
 end
 
@@ -541,59 +405,16 @@ end
 for iy = 1, buildingHeight, 1 do
     for iz = 1, buildingDepth, 1 do
 
-        -- Create new layer and new cel
-        local wallLayer = sprite:newLayer()
-        wallLayer.name = "walls right level " .. iy .. ", section " .. iz
-        wallLayer.parent = wallsGroup
-
-        local cel = sprite:newCel(wallLayer, 1)
-
-        -- Add the wall
-        local pathCurrentWall = pathWalls .. variantCurrentWall .. ".png"
-        local img = Image{ fromFile=pathCurrentWall }
-
-        -- Place it into the cel at a given position
-        cel.image = img
-
+        -- Walls
         drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 1
         drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) + 1
-        
-        -- Flip the segment
-        app.command.Flip{ target="mask", orientation="horizontal" }
-        cel.position = Point( drawX, drawY )
-        replaceColours("wall", "right")
+        placeComponent("walls right", wallsGroup, pathWalls, variantCurrentWall, drawX, drawY, "wall", "right", true)
             
         -- Window
-        local windowLayer = sprite:newLayer()
-        windowLayer.name = "windows right level " .. iy .. ", section " .. iz
-        windowLayer.parent = windowsRightGroup
-
-        local cel = sprite:newCel(windowLayer, 1)
-        local variantCurrentWindow = math.random(1)
-        local pathCurrentWindow = pathWindows .. variantCurrentWindow .. ".png"
-        
-        local img = Image{ fromFile=pathCurrentWindow }
-
-        cel.image = img
-        app.command.Flip{ target="mask", orientation="horizontal" }
-        cel.position = Point( drawX, drawY )
-        replaceColours("trim", "right")
+        placeComponent("walls right", windowsRightGroup, pathWindows, variantCurrentWindow, drawX, drawY, "trim", "right", true)
 
         -- Horizontal trim
-        local trimHorizontalLayer = sprite:newLayer()
-        trimHorizontalLayer.name = "horizontal trim right level " .. iy .. ", section " .. iz
-        trimHorizontalLayer.parent = trimHorizontalRightGroup
-
-        local cel = sprite:newCel(trimHorizontalLayer, 1)
-        local variantCurrentHorizontalTrim = tableRowTrimsRight[iy]
-        local pathCurrentHorizontalTrim = pathHorizontalTrims .. variantCurrentHorizontalTrim .. ".png"
-        
-        local img = Image{ fromFile=pathCurrentHorizontalTrim }
-
-        cel.image = img
-        app.command.Flip{ target="mask", orientation="horizontal" }
-        cel.position = Point( drawX, drawY )
-        replaceColours("trim", "right")
+        placeComponent("horizontal trim right", trimHorizontalRightGroup, pathHorizontalTrims, tableRowTrimsRight[iy], drawX, drawY, "trim", "right", true)
 
         if iy == buildingHeight then
 
@@ -601,20 +422,7 @@ for iy = 1, buildingHeight, 1 do
                 if iz < buildingDepth then
 
                     -- Gable horizontal trim
-                    local trimGableLayer = sprite:newLayer()
-                    trimGableLayer.name = "horizontal trim right gable, section " .. iz
-                    trimGableLayer.parent = gableTrimHorizontalGroup
-
-                    local cel = sprite:newCel(trimGableLayer, 1)
-                    local variantCurrentHorizontalTrim = tableRowTrimsRight[iy]
-                    local pathCurrentHorizontalTrim = pathHorizontalTrims .. variantCurrentHorizontalTrim .. ".png"
-                    
-                    local img = Image{ fromFile=pathCurrentHorizontalTrim }
-
-                    cel.image = img
-                    app.command.Flip{ target="mask", orientation="horizontal" }
-                    cel.position = Point( drawX, drawY - sectionHeight - 7)
-                    replaceColours("trim", "right")
+                    placeComponent("horizontal trim right gable", gableTrimHorizontalGroup, pathHorizontalTrims, tableRowTrimsRight[iy], drawX, drawY - sectionHeight - 7, "trim", "right", true)
 
                 end
             end
@@ -622,38 +430,10 @@ for iy = 1, buildingHeight, 1 do
 
         -- Corner trim
         if iz == buildingDepth then
-
-            local trimCornerLayer = sprite:newLayer()
-            trimCornerLayer.name = "corner trim level " .. iy
-            trimCornerLayer.parent = trimCornerGroup
-
-            local cel = sprite:newCel(trimCornerLayer, 1)
-            local pathCurrentCornerTrimSide = pathCornerTrimsSide .. variantCurrentCornerTrim .. ".png"
-            
-            local img = Image{ fromFile=pathCurrentCornerTrimSide }
-
-            cel.image = img
-            app.command.Flip{ target="mask", orientation="horizontal" }
-            cel.position = Point( drawX + (sectionWidth/2), drawY - 8)
-            replaceColours("trim", "top")
-
+            placeComponent("corner trim", trimCornerGroup, pathCornerTrimsSide, variantCurrentCornerTrim, drawX + (sectionWidth/2), drawY - 8, "trim", "top", true)
         else
             -- Vertical trim
-            local trimVerticalLayer = sprite:newLayer()
-            trimVerticalLayer.name = "vertical trim right level " .. iy .. ", section " .. iz
-            trimVerticalLayer.parent = trimVerticalGroup
-
-            local cel = sprite:newCel(trimVerticalLayer, 1)
-            local variantCurrentVerticalTrim = tableColTrimsRight[iz]
-            local pathCurrentVerticalTrim = pathVerticalTrims .. variantCurrentVerticalTrim .. ".png"
-            
-            local img = Image{ fromFile=pathCurrentVerticalTrim }
-
-            cel.image = img
-            app.command.Flip{ target="mask", orientation="horizontal" }
-            cel.position = Point( drawX + (sectionWidth/2), drawY - 7)
-            replaceColours("trim", "left") -- Because vertical trims contain a top colour, so this moves colours "up" one to fix
-
+            placeComponent("vertical trim right", trimVerticalGroup, pathVerticalTrims, tableColTrimsRight[iz], drawX + (sectionWidth/2), drawY - 7, "trim", "left", true)
         end
 
         -- Gable check
@@ -662,156 +442,67 @@ for iy = 1, buildingHeight, 1 do
             if iz < buildingDepth then
 
                 -- Gable vertical trim
-                local trimGableLayer = sprite:newLayer()
-                trimGableLayer.name = "vertical trim right gable, section " .. iz
-                trimGableLayer.parent = gableTrimVerticalGroup
-
-                local cel = sprite:newCel(trimGableLayer, 1)
-                local variantCurrentVerticalTrim = tableColTrimsRight[iz]
-                local pathCurrentVerticalTrim = pathVerticalTrims .. variantCurrentVerticalTrim .. ".png"
-                
-                local img = Image{ fromFile=pathCurrentVerticalTrim }
-
-                cel.image = img
-                app.command.Flip{ target="mask", orientation="horizontal" }
-                cel.position = Point( drawX + (sectionWidth/2), drawY - sectionHeight - 7)
-                replaceColours("trim", "left")
-
+                placeComponent("vertical trim right gable", gableTrimVerticalGroup, pathVerticalTrims, tableColTrimsRight[iz], drawX + (sectionWidth/2), drawY - sectionHeight - 7, "trim", "left", true)
             end
 
-            -- Flipped gable process
-            if gableSide == "right" then
+            -- If we are section buildingDepth, add the flipped diagonal gable face and roof trim
+            if iz == buildingDepth then
 
-            -- If gable isn't this end...
-            else
-                -- If we are section buildingDepth, add the flipped diagonal gable face and roof trim
-                if iz == buildingDepth then
+                drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) - 1
+                drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 9
+                placeComponent("roof side right", roofGroup, pathRoofSidesRight, variantCurrentWall, drawX, drawY, "wall", "right", false)
 
-                    local roofSideRight = sprite:newLayer()
-                    roofSideRight.name = "roof side right"
-                    roofSideRight.parent = roofGroup
+                -- Roof trim fore
+                drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 2
+                drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 1
+                placeComponent("roof trim right fore", trimRoofGroupForeRight, pathRoofTrimsRight, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                    local cel = sprite:newCel(roofSideRight, 1)
+                -- Roof trim rear
+                drawX = drawX - (sectionWidth * buildingWidth) - 5
+                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
+                placeComponent("roof trim right rear", trimRoofGroupRearRight, pathRoofTrimsRight, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                    -- Choose a roof side variant
-                    local variantCurrentRoofSide = variantCurrentWall
-                    local pathCurrentRoofSide = pathRoofSidesRight .. variantCurrentRoofSide .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofSide }
+            -- Else if we aren't the first section, add a flat gable end (current wall variant), and centre roof trim
+            elseif iz > 1 then
 
-                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) - 1
-                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 9
+                -- Flat gable
+                drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 1
+                drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 1
+                placeComponent("gable end", roofGroup, pathWalls, variantCurrentWall, drawX, drawY, "wall", "right", true)
 
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("wall", "right")
+                -- Centre roof trim fore
+                drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 4
+                drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - (sectionHeight * 1.5) - 3
+                placeComponent("roof trim centre fore", trimRoofGroupForeCentre, pathRoofTrimsCentre, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                    -- Roof trim fore
-                    roofTrimRight = sprite:newLayer()
-                    roofTrimRight.name = "roof trim right"
-                    roofTrimRight.parent = trimRoofGroupFore
+                -- Centre roof trim rear
+                drawX = drawX - (sectionWidth * buildingWidth) - 5
+                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
+                placeComponent("roof trim centre rear", trimRoofGroupRearCentre, pathRoofTrimsCentre, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                    local cel = sprite:newCel(roofTrimRight, 1)
+                -- Reorder layers
+                app.transaction(function()
 
-                    local pathCurrentRoofTrimRight = pathRoofTrimsRight .. variantCurrentRoofTrim .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofTrimRight }
+                    local foreLayers = {}
+                    local rearLayers = {}
 
-                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 2
-                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 1
+                    for i, layer in ipairs(trimRoofGroupForeCentre.layers) do
+                        table.insert(foreLayers, layer)
+                        table.insert(rearLayers, trimRoofGroupRearCentre.layers[i])
+                    end
 
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("trim", "top")
+                    -- Reverse both groups identically
+                    for i = #foreLayers, 1, -1 do
+                        local newIndex = #foreLayers - i + 1
 
-                    -- Roof trim rear
-                    roofTrimRightRear = sprite:newLayer()
-                    roofTrimRightRear.name = "roof trim right rear"
-                    roofTrimRightRear.parent = trimRoofGroupRear
+                        foreLayers[i].stackIndex = newIndex
+                        rearLayers[i].stackIndex = newIndex
+                    end
 
-                    local cel = sprite:newCel(roofTrimRightRear, 1)
+                end)
 
-                    local pathCurrentRoofTrimRight = pathRoofTrimsRight .. variantCurrentRoofTrim .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofTrimRight }
-
-                    drawX = drawX - (sectionWidth * buildingWidth) - 5
-                    drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
-
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("trim", "top")
-
-
-                -- Else if we aren't the first section, add a flat gable end (current wall variant), and centre roof trim
-                elseif iz > 1 then
-
-                    -- Flat gable
-                    local gableEnd = sprite:newLayer()
-                    gableEnd.name = "gable end"
-                    gableEnd.parent = roofGroup
-
-                    local cel = sprite:newCel(gableEnd, 1)
-
-                    local img = Image{ fromFile=pathCurrentWall }
-
-                    -- Place it into the cel at a given position
-                    cel.image = img
-
-                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 1
-                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - sectionHeight + 1
-                    
-                    -- Flip the segment
-                    app.command.Flip{ target="mask", orientation="horizontal" }
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("wall", "right")
-
-                    -- Centre roof trim fore
-                    local roofTrimCentre = sprite:newLayer()
-                    roofTrimCentre.name = "roof trim centre"
-                    roofTrimCentre.parent = trimRoofGroupFore
-
-                    -- Reorder layers
-                    roofTrimCentre.stackIndex = 0
-
-                    local cel = sprite:newCel(roofTrimCentre, 1)
-
-                    local pathCurrentRoofTrimCentre = pathRoofTrimsCentre .. variantCurrentRoofTrim .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofTrimCentre }
-
-                    drawX = drawStartX + (sectionWidth * buildingWidth) + (iz - 1) * (sectionWidth) + 4
-                    drawY = drawStartY + (buildingWidth * (sectionWidth/2)) - ((iz - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionWidth/2) - (sectionHeight * 1.5) - 3
-
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("trim", "top")
-
-                    -- Centre roof trim rear
-                    local roofTrimCentreRear = sprite:newLayer()
-                    roofTrimCentreRear.name = "roof trim centre"
-                    roofTrimCentreRear.parent = trimRoofGroupRear
-
-                    -- Reorder layers
-                    roofTrimCentreRear.stackIndex = 0
-
-                    local cel = sprite:newCel(roofTrimCentreRear, 1)
-
-                    local pathCurrentRoofTrimCentre = pathRoofTrimsCentre .. variantCurrentRoofTrim .. ".png"
-                    local img = Image{ fromFile=pathCurrentRoofTrimCentre }
-
-                    drawX = drawX - (sectionWidth * buildingWidth) - 5
-                    drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
-
-                    -- Place it into the cel at a given position
-                    cel.image = img
-                    cel.position = Point( drawX, drawY )
-                    replaceColours("trim", "top")
-
-                end
             end
         end
-
     end
 end
 
@@ -822,22 +513,7 @@ local baseDrawY = drawStartY - (buildingDepth * (sectionWidth / 2)) - sectionWid
 -- Base loop
 for bz = 0, buildingDepth + 1, 1 do
     for bx = 0, buildingWidth + 1, 1 do
-
-        -- Base
-        local baseLayer = sprite:newLayer()
-        baseLayer.name = "base " .. bx .. ", section " .. bz
-        baseLayer.parent = baseGroup
-
-        local cel = sprite:newCel(baseLayer, 1)
-        local pathCurrentBase = pathBase .. math.random(baseVariantCount) .. ".png"
-        local img = Image{ fromFile=pathCurrentBase }
-
-        -- Place it into the cel at a given position
-        cel.image = img
-        --cel.position = Point( baseDrawX + (sectionWidth * (bx)) - (sectionWidth / 2), baseDrawY - 16 + ((sectionHeight / 2) * bx) + (bz * sectionHeight/2) )
-        cel.position = Point( baseDrawX + (sectionWidth * (bx)) - (sectionWidth / 2), baseDrawY - 16 + ((sectionHeight / 2) * bx)  - (8 * bx) )
-        replaceColours("base", "top")
-        
+        placeComponent("base", baseGroup, pathBase, math.random(baseVariantCount), baseDrawX + (sectionWidth * (bx)) - (sectionWidth / 2), baseDrawY - 16 + ((sectionHeight / 2) * bx)  - (8 * bx) , "base", "top", false)  
     end
     bx = 0
     baseDrawX = baseDrawX - sectionWidth
@@ -845,13 +521,7 @@ for bz = 0, buildingDepth + 1, 1 do
 end
 
 ------------------------------------------------------------------------------------------------------------------------
--- Reorder layers
-local numberOfRoofTrims = #(trimRoofGroupFore.layers)
-roofTrimRight.stackIndex = 0
-roofTrimLeft.stackIndex = numberOfRoofTrims
-
-roofTrimRightRear.stackIndex = 0
-roofTrimLeftRear.stackIndex = numberOfRoofTrims
+-- Reverse order of layers in the centre roof trim group
 
 ------------------------------------------------------------------------------------------------------------------------
 app.refresh()
