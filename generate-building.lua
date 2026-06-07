@@ -186,15 +186,6 @@ local buildingWidth = math.random(2, 4)
 local buildingHeight = math.random(1, 5)
 local buildingDepth = math.random(2, 4)
 
-buildingWidth = 2
-buildingHeight = 1
-buildingDepth = 4
-
-local gableTable = {"left", "right"}
-
-local gableSide = gableTable[math.random(#gableTable)]
-gableSide = "left"
-
 -- Choose variants
 local variantCurrentWall = math.random(wallVariantCount)
 local variantCurrentWindow = math.random(windowVariantCount)
@@ -307,9 +298,7 @@ trimRoofGroupForeLeft.isCollapsed = true
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Nested loop to build sections for as many times as building is wide, and then for as many times as the building is high
-local ix
-local iy
-local iz
+local ix, iy, iz
 
 -- Calculate draw start position based on building sections
 local buildingPixelWidth = (buildingWidth + buildingDepth) * (sectionWidth + 2)
@@ -357,44 +346,42 @@ for iy = 1, buildingHeight, 1 do
 
         -- Gable
         if iy == buildingHeight then
-            if gableSide == "left" then
 
-                -- Replicated straight from walls to test
-                drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + 2
-                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - 56
-                placeComponent("roof left", roofGroup, pathRooves, math.random(roofVariantCount), drawX, drawY, "roof", "left", false)
+            -- Replicated straight from walls to test
+            drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + 2
+            drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - 56
+            placeComponent("roof left", roofGroup, pathRooves, math.random(roofVariantCount), drawX, drawY, "roof", "left", false)
 
-                -- Roof sides and trims
-                if ix == buildingWidth then
-                    
-                    drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
-                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
-                    placeComponent("roof side left", roofGroup, pathRoofSidesLeft, variantCurrentWall, drawX, drawY, "wall", "right", false)
+            -- Roof sides and trims
+            if ix == buildingWidth then
                 
-                    -- Roof trim fore
-                    drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
-                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
-                    placeComponent("roof trim left fore", trimRoofGroupForeLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
+                drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
+                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
+                placeComponent("roof side left", roofGroup, pathRoofSidesLeft, variantCurrentWall, drawX, drawY, "wall", "right", false)
+            
+                -- Roof trim fore
+                drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
+                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
+                placeComponent("roof trim left fore", trimRoofGroupForeLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                    -- Roof trim rear
-                    drawX = drawX - (sectionWidth * buildingWidth) - 5
-                    drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
-                    placeComponent("roof trim left rear", trimRoofGroupRearLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
+                -- Roof trim rear
+                drawX = drawX - (sectionWidth * buildingWidth) - 5
+                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
+                placeComponent("roof trim left rear", trimRoofGroupRearLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
-                end
+            end
 
-                -- Rooftops
-                if buildingDepth > 2 then
+            -- Rooftops
+            if buildingDepth > 2 then
 
-                    -- Insert for loop up to building depth
-                    local roofTopN
-                    for roofTopN = 1, buildingDepth - 2, 1 do
+                -- Insert for loop up to building depth
+                local roofTopN
+                for roofTopN = 1, buildingDepth - 2, 1 do
 
-                        drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN) + 1
-                        drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1)) + 2
-                        placeComponent("roof top", roofGroup, pathRooftops, 1, drawX, drawY, "roof", "top", false)
+                    drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN) + 1
+                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1)) + 2
+                    placeComponent("roof top", roofGroup, pathRooftops, 1, drawX, drawY, "roof", "top", false)
 
-                    end
                 end
             end
         end
@@ -416,16 +403,9 @@ for iy = 1, buildingHeight, 1 do
         -- Horizontal trim
         placeComponent("horizontal trim right", trimHorizontalRightGroup, pathHorizontalTrims, tableRowTrimsRight[iy], drawX, drawY, "trim", "right", true)
 
-        if iy == buildingHeight then
-
-            if iz > 1 then
-                if iz < buildingDepth then
-
-                    -- Gable horizontal trim
-                    placeComponent("horizontal trim right gable", gableTrimHorizontalGroup, pathHorizontalTrims, tableRowTrimsRight[iy], drawX, drawY - sectionHeight - 7, "trim", "right", true)
-
-                end
-            end
+        -- Gable horizontal trim
+        if (iy == buildingHeight and iz > 1 and iz < buildingDepth) then
+            placeComponent("horizontal trim right gable", gableTrimHorizontalGroup, pathHorizontalTrims, tableRowTrimsRight[iy], drawX, drawY - sectionHeight - 7, "trim", "right", true)
         end
 
         -- Corner trim
@@ -439,9 +419,8 @@ for iy = 1, buildingHeight, 1 do
         -- Gable check
         if iy == buildingHeight then
 
+            -- Gable vertical trim
             if iz < buildingDepth then
-
-                -- Gable vertical trim
                 placeComponent("vertical trim right gable", gableTrimVerticalGroup, pathVerticalTrims, tableColTrimsRight[iz], drawX + (sectionWidth/2), drawY - sectionHeight - 7, "trim", "left", true)
             end
 
@@ -513,15 +492,12 @@ local baseDrawY = drawStartY - (buildingDepth * (sectionWidth / 2)) - sectionWid
 -- Base loop
 for bz = 0, buildingDepth + 1, 1 do
     for bx = 0, buildingWidth + 1, 1 do
-        placeComponent("base", baseGroup, pathBase, math.random(baseVariantCount), baseDrawX + (sectionWidth * (bx)) - (sectionWidth / 2), baseDrawY - 16 + ((sectionHeight / 2) * bx)  - (8 * bx) , "base", "top", false)  
+        placeComponent("base", baseGroup, pathBase, math.random(baseVariantCount), baseDrawX + (sectionWidth * (bx)) - (sectionWidth / 2), baseDrawY - (sectionWidth / 2) + ((sectionHeight / 2) * bx)  - (8 * bx) , "base", "top", false)  
     end
     bx = 0
     baseDrawX = baseDrawX - sectionWidth
     baseDrawY = baseDrawY + (sectionWidth / 2)
 end
-
-------------------------------------------------------------------------------------------------------------------------
--- Reverse order of layers in the centre roof trim group
 
 ------------------------------------------------------------------------------------------------------------------------
 app.refresh()
