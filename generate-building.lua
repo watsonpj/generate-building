@@ -25,15 +25,14 @@ local pathRooftops = pathDirectory .. "rooftops/"
 local pathDoors = pathDirectory .. "doors/"
 local pathBase = pathDirectory .. "base/"
 
-local wallVariantCount = 7
-local windowVariantCount = 3
-local horizontalTrimVariantCount = 7
-local verticalTrimVariantCount = 3
-local cornerTrimVariantCount = 3
-local roofVariantCount = 1
-local doorVariantCount = 2
-local baseVariantCount = 1
-local roofTrimVariantCount = 1
+local wallVariantCount = 10
+local windowVariantCount = 10
+local horizontalTrimVariantCount = 10
+local verticalTrimVariantCount = 10
+local cornerTrimVariantCount = 10
+local roofVariantCount = 10
+local doorVariantCount = 10
+local baseVariantCount = 10
 
 -- Defining the colours we replace in the original sprites
 local color1A = Color{ r=255, g=255, b=255, a=255 }
@@ -191,7 +190,8 @@ local variantCurrentWall = math.random(wallVariantCount)
 local variantCurrentWindow = math.random(windowVariantCount)
 local variantCurrentCornerTrim = math.random(cornerTrimVariantCount)
 local variantCurrentDoor = math.random(doorVariantCount)
-local variantCurrentRoofTrim = math.random(roofTrimVariantCount)
+local variantCurrentRoof = math.random(roofVariantCount)
+local variantCurrentRoofTrim = 1
 
 -- Populate tables with trim choices for rows
 local tableRowTrimsLeft = {}
@@ -240,6 +240,10 @@ local trimHorizontalRightGroup = sprite:newGroup()
 trimHorizontalRightGroup.name = "horizontal trims, right"
 trimHorizontalRightGroup.isCollapsed = true
 
+local trimVerticalGroup = sprite:newGroup()
+trimVerticalGroup.name = "vertical trims"
+trimVerticalGroup.isCollapsed = true
+
 local windowsLeftGroup = sprite:newGroup()
 windowsLeftGroup.name = "windows, left"
 windowsLeftGroup.isCollapsed = true
@@ -247,14 +251,6 @@ windowsLeftGroup.isCollapsed = true
 local windowsRightGroup = sprite:newGroup()
 windowsRightGroup.name = "windows, right"
 windowsRightGroup.isCollapsed = true
-
-local trimVerticalGroup = sprite:newGroup()
-trimVerticalGroup.name = "vertical trims"
-trimVerticalGroup.isCollapsed = true
-
-local doorGroup = sprite:newGroup()
-doorGroup.name = "door"
-doorGroup.isCollapsed = true
 
 local trimRoofGroupRearRight = sprite:newGroup()
 trimRoofGroupRearRight.name = "roof trims rear right"
@@ -348,15 +344,15 @@ for iy = 1, buildingHeight, 1 do
         if iy == buildingHeight then
 
             -- Replicated straight from walls to test
-            drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + 2
+            drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + 1
             drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - 56
-            placeComponent("roof left", roofGroup, pathRooves, math.random(roofVariantCount), drawX, drawY, "roof", "left", false)
+            placeComponent("roof left", roofGroup, pathRooves, variantCurrentRoof, drawX, drawY, "roof", "left", false)
 
             -- Roof sides and trims
             if ix == buildingWidth then
                 
-                drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 2
-                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 1
+                drawX = drawStartX + ((ix - 1) * sectionWidth) + sectionWidth + 1
+                drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - sectionHeight + 2
                 placeComponent("roof side left", roofGroup, pathRoofSidesLeft, variantCurrentWall, drawX, drawY, "wall", "right", false)
             
                 -- Roof trim fore
@@ -365,8 +361,8 @@ for iy = 1, buildingHeight, 1 do
                 placeComponent("roof trim left fore", trimRoofGroupForeLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
                 -- Roof trim rear
-                drawX = drawX - (sectionWidth * buildingWidth) - 5
-                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
+                drawX = drawX - (sectionWidth * buildingWidth) - 3
+                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 2
                 placeComponent("roof trim left rear", trimRoofGroupRearLeft, pathRoofTrimsLeft, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
             end
@@ -379,8 +375,8 @@ for iy = 1, buildingHeight, 1 do
                 for roofTopN = 1, buildingDepth - 2, 1 do
 
                     drawX = drawStartX + ((ix - 1) * sectionWidth) + (sectionWidth / 2) + (sectionWidth * roofTopN) + 1
-                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1)) + 2
-                    placeComponent("roof top", roofGroup, pathRooftops, 1, drawX, drawY, "roof", "top", false)
+                    drawY = drawStartY + ((ix - 1) * (sectionWidth/2)) - (iy * sectionHeight) - (sectionHeight * 2) - ((sectionWidth/2) * (roofTopN - 1)) - 2
+                    placeComponent("roof top", roofGroup, pathRooftops, variantCurrentRoof, drawX, drawY, "roof", "top", false)
 
                 end
             end
@@ -437,8 +433,8 @@ for iy = 1, buildingHeight, 1 do
                 placeComponent("roof trim right fore", trimRoofGroupForeRight, pathRoofTrimsRight, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
                 -- Roof trim rear
-                drawX = drawX - (sectionWidth * buildingWidth) - 5
-                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
+                drawX = drawX - (sectionWidth * buildingWidth) - 3
+                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 2
                 placeComponent("roof trim right rear", trimRoofGroupRearRight, pathRoofTrimsRight, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
             -- Else if we aren't the first section, add a flat gable end (current wall variant), and centre roof trim
@@ -455,8 +451,8 @@ for iy = 1, buildingHeight, 1 do
                 placeComponent("roof trim centre fore", trimRoofGroupForeCentre, pathRoofTrimsCentre, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
                 -- Centre roof trim rear
-                drawX = drawX - (sectionWidth * buildingWidth) - 5
-                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 1
+                drawX = drawX - (sectionWidth * buildingWidth) - 3
+                drawY = drawY - ((sectionWidth / 2) * buildingWidth) - 2
                 placeComponent("roof trim centre rear", trimRoofGroupRearCentre, pathRoofTrimsCentre, variantCurrentRoofTrim, drawX, drawY, "trim", "top", false)
 
                 -- Reorder layers
