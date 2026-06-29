@@ -315,10 +315,8 @@ for iy = 1, buildingHeight, 1 do
         placeComponent("walls left", wallsGroup, pathWalls, variantCurrentWall, drawX, drawY, "wall", "left", false)
 
         -- Door or window
-        if iy == 1 then
-            if ix == doorLocation then
-                placeComponent("door", windowsLeftGroup, pathDoors, variantCurrentDoor, drawX, drawY, "trim", "left", false)
-            end
+        if iy == 1 and ix == doorLocation then
+            placeComponent("door", windowsLeftGroup, pathDoors, variantCurrentDoor, drawX, drawY, "trim", "left", false)
         else
             placeComponent("windows left", windowsLeftGroup, pathWindows, variantCurrentWindow, drawX, drawY, "trim", "left", false)
         end
